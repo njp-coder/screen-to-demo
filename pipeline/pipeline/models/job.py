@@ -33,7 +33,7 @@ class Job(Base):
     input_width = Column(Integer, nullable=True)
     input_height = Column(Integer, nullable=True)
     options_json = Column(JSON, nullable=True)
-    error_message = Column(String(2048), nullable=True)
+    error_message = Column(Text, nullable=True)
     output_id = Column(UUID(as_uuid=True), nullable=True)
 
 
