@@ -32,7 +32,7 @@ async def _set_job_status(session, job: Job, status: str, progress_pct: int = No
     job.status = status
     if progress_pct is not None:
         job.progress_pct = progress_pct
-    await session.flush()
+    await session.commit()
 
 
 async def process_video(ctx, job_id: str):
@@ -71,7 +71,7 @@ async def process_video(ctx, job_id: str):
             job.input_duration_s = ingest_result["duration_s"]
             job.input_width = ingest_result["width"]
             job.input_height = ingest_result["height"]
-            await db.flush()
+            await db.commit()
 
             frame_paths = ingest_result["frame_paths"]
 
@@ -106,7 +106,7 @@ async def process_video(ctx, job_id: str):
                     importance_score=s.get("importance_score", 0.5),
                 )
                 db.add(scene_row)
-            await db.flush()
+            await db.commit()
 
             await emit_progress(
                 redis_url, job_id, "detecting_scenes", 30,
@@ -197,7 +197,7 @@ async def process_video(ctx, job_id: str):
                 subtitle_segments_json=script_dict.get("subtitle_segments", []),
             )
             db.add(script_row)
-            await db.flush()
+            await db.commit()
 
             await emit_progress(redis_url, job_id, "generating_script", 65, "Script ready")
 
@@ -288,7 +288,7 @@ async def process_video(ctx, job_id: str):
                 screenshot_paths_json=docs_result.get("screenshot_paths", []),
             )
             db.add(output_row)
-            await db.flush()
+            await db.commit()
 
             job.output_id = output_row.id
             await _set_job_status(db, job, "complete", 100)
@@ -302,6 +302,6 @@ async def process_video(ctx, job_id: str):
                 if err_job:
                     err_job.status = "failed"
                     err_job.error_message = f"{exc}\n\n{tb}"
-                    await err_db.flush()
+                    await err_db.commit()
             await emit_progress(redis_url, job_id, "failed", 0, f"Error: {exc}")
             raise
