@@ -20,6 +20,7 @@ dependencies = [
     "pytesseract>=0.3.10",
     "scenedetect[opencv]>=0.6",
     "gtts>=2.5",
+    "edge-tts>=6.1",
     "sse-starlette>=2.1",
     "aiofiles>=23.0",
     "python-multipart>=0.0.9",
