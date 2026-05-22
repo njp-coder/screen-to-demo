@@ -67,7 +67,7 @@ export function useUpload(): UseUploadReturn {
         reject(new Error(err));
       });
 
-      xhr.open("POST", `${BASE}/api/v1/uploads`);
+      xhr.open("POST", `${BASE}/api/v1/upload`);
       xhr.send(formData);
     });
   };
