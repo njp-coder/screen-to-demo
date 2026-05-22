@@ -4,10 +4,21 @@ Stage 6 — Text-to-Speech
 
 ElevenLabs (with-timestamps for karaoke captions) → gTTS fallback.
 Returns audio_path + word_timestamps for ASS karaoke rendering.
+
+Graceful degradation:
+  ElevenLabs /with-timestamps  →  ElevenLabs standard  →  gTTS
+Any ElevenLabs error (402 payment, network, etc.) silently falls back to gTTS.
 """
 import asyncio
 import base64
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+
+class _ElevenLabsError(Exception):
+    """Internal: any ElevenLabs API failure we want to fall back from."""
 
 
 async def run(
@@ -27,12 +38,20 @@ async def run(
     word_timestamps: list[dict] = []
 
     if elevenlabs_api_key:
-        word_timestamps = await _tts_elevenlabs(
-            text=narration_text,
-            api_key=elevenlabs_api_key,
-            voice_id=elevenlabs_voice_id,
-            output_path=audio_path,
-        )
+        try:
+            word_timestamps = await _tts_elevenlabs(
+                text=narration_text,
+                api_key=elevenlabs_api_key,
+                voice_id=elevenlabs_voice_id,
+                output_path=audio_path,
+            )
+            logger.info("TTS: ElevenLabs succeeded, %d word timestamps", len(word_timestamps))
+        except _ElevenLabsError as exc:
+            logger.warning("TTS: ElevenLabs unavailable (%s) — falling back to gTTS", exc)
+            await _tts_gtts(text=narration_text, output_path=audio_path)
+        except Exception as exc:
+            logger.warning("TTS: ElevenLabs unexpected error (%s) — falling back to gTTS", exc)
+            await _tts_gtts(text=narration_text, output_path=audio_path)
     else:
         await _tts_gtts(text=narration_text, output_path=audio_path)
 
@@ -49,7 +68,7 @@ async def _tts_elevenlabs(
     voice_id: str,
     output_path: str,
 ) -> list[dict]:
-    """Use /with-timestamps endpoint; fall back to standard if unavailable."""
+    """Try /with-timestamps endpoint; fall back to standard on non-200."""
     import aiohttp
 
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}/with-timestamps"
@@ -77,10 +96,17 @@ async def _tts_elevenlabs(
                     alignment.get("character_start_times_seconds", []),
                     alignment.get("character_end_times_seconds", []),
                 )
-            else:
-                # Fall back to standard endpoint
+            elif resp.status == 402:
                 body = await resp.text()
+                raise _ElevenLabsError(f"402 payment_required: {body[:200]}")
+            else:
+                body = await resp.text()
+                logger.debug(
+                    "ElevenLabs /with-timestamps %s — trying standard endpoint: %s",
+                    resp.status, body[:120],
+                )
 
+    # Non-200 (not 402): try the standard endpoint
     return await _tts_elevenlabs_standard(text, api_key, voice_id, output_path)
 
 
@@ -88,6 +114,7 @@ async def _tts_elevenlabs_standard(
     text: str, api_key: str, voice_id: str, output_path: str
 ) -> list[dict]:
     import aiohttp
+
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
     headers = {
         "xi-api-key": api_key,
@@ -101,11 +128,14 @@ async def _tts_elevenlabs_standard(
     }
     async with aiohttp.ClientSession() as session:
         async with session.post(url, json=payload, headers=headers) as resp:
+            if resp.status == 402:
+                body = await resp.text()
+                raise _ElevenLabsError(f"402 payment_required: {body[:200]}")
             if resp.status != 200:
                 body = await resp.text()
-                raise RuntimeError(f"ElevenLabs error {resp.status}: {body[:200]}")
+                raise _ElevenLabsError(f"ElevenLabs error {resp.status}: {body[:200]}")
             Path(output_path).write_bytes(await resp.read())
-    return []
+    return []  # standard endpoint has no timestamps
 
 
 def _chars_to_words(
