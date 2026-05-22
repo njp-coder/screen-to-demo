@@ -4,11 +4,21 @@ ARQ worker entry-point.
 Run with:
     python -m pipeline.worker.queue
 """
+import logging
+import sys
+
 from arq import run_worker
 from arq.connections import RedisSettings
 
 from pipeline.config import get_settings
 from pipeline.worker.tasks import process_video
+
+# Ensure ARQ logs are visible
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)-8s  %(message)s",
+    stream=sys.stdout,
+)
 
 
 def _redis_settings_from_url(url: str) -> RedisSettings:
