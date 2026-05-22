@@ -1,0 +1,28 @@
+# Python
+pipeline/.venv/
+pipeline/__pycache__/
+pipeline/**/__pycache__/
+pipeline/**/*.pyc
+pipeline/*.egg-info/
+pipeline/.pytest_cache/
+
+# Node
+web/node_modules/
+web/.next/
+web/out/
+
+# Env
+.env
+
+# Storage (generated files)
+storage/uploads/*
+storage/frames/*
+storage/outputs/*
+storage/docs/*
+!storage/uploads/.gitkeep
+!storage/frames/.gitkeep
+!storage/outputs/.gitkeep
+!storage/docs/.gitkeep
+
+# OS
+.DS_Store
