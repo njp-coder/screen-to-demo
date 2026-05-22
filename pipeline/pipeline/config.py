@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     max_input_duration_s: int = 1800
     worker_max_jobs: int = 1
     job_timeout_s: int = 3600
+    music_track_path: str = ""  # Optional: path to background music MP3/WAV
 
 
 @lru_cache()

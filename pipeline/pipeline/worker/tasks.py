@@ -211,10 +211,12 @@ async def process_video(ctx, job_id: str):
                 job_id=job_id,
                 narration_text=script_dict.get("full_narration_text", ""),
                 storage_base=storage_base,
-                elevenlabs_api_key=settings.elevenlabs_api_key if use_elevenlabs else "",
+                # Use ElevenLabs whenever the key is configured (ignore use_elevenlabs flag)
+                elevenlabs_api_key=settings.elevenlabs_api_key,
                 elevenlabs_voice_id=settings.elevenlabs_voice_id,
             )
             audio_path = tts_result["audio_path"]
+            word_timestamps = tts_result.get("word_timestamps", [])
 
             await emit_progress(redis_url, job_id, "rendering", 73, "Audio generated")
 
@@ -251,6 +253,9 @@ async def process_video(ctx, job_id: str):
                 audio_path=audio_path,
                 subtitle_segments=script_dict.get("subtitle_segments", []),
                 output_dir=output_dir,
+                word_timestamps=word_timestamps,
+                script=script_dict,
+                music_path=settings.music_track_path,
             )
             video_path = render_result["video_path"]
 
