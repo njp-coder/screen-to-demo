@@ -138,7 +138,7 @@ async def _make_title_card(
     title_dt = (
         f"drawtext=textfile='{name_file}'"
         f"{font_arg}"
-        f":fontsize=80:fontcolor=white:bold=1"
+        f":fontsize=80:fontcolor=white"
         f":shadowcolor=black:shadowx=3:shadowy=3"
         f":x=(w-text_w)/2:y={y_name}"
     )
@@ -192,7 +192,7 @@ async def _make_chapter_card(
     vf = (
         f"drawtext=textfile='{title_file}'"
         f"{font_arg}"
-        f":fontsize=58:fontcolor=white:bold=1"
+        f":fontsize=58:fontcolor=white"
         f":shadowcolor=black:shadowx=2:shadowy=2"
         f":x=(w-text_w)/2:y=(h-text_h)/2"
     )
