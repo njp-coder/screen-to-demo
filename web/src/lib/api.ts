@@ -14,7 +14,7 @@ export async function uploadFile(file: File): Promise<UploadResponse> {
   const formData = new FormData();
   formData.append("file", file);
 
-  const res = await fetch(`${BASE}/api/v1/uploads`, {
+  const res = await fetch(`${BASE}/api/v1/upload`, {
     method: "POST",
     body: formData,
   });
@@ -41,7 +41,7 @@ export async function getJob(job_id: string): Promise<Job> {
 }
 
 export async function getOutput(job_id: string): Promise<Output> {
-  const res = await fetch(`${BASE}/api/v1/jobs/${job_id}/output`);
+  const res = await fetch(`${BASE}/api/v1/outputs/${job_id}`);
   return handleResponse<Output>(res);
 }
 
