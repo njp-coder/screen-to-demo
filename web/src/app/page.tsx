@@ -36,10 +36,10 @@ export default function HomePage() {
       const uploadResponse = await upload(selectedFile);
 
       setAppState("creating");
-      const job = await createJob(uploadResponse.upload_id, {
+      const job = await createJob(uploadResponse.upload_id, uploadResponse.file_path, {
         target_duration_s: targetDuration,
         output_style: outputStyle,
-        generate_docs: generateDocs,
+        include_docs: generateDocs,
       });
 
       router.push(`/jobs/${job.id}`);

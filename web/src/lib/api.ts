@@ -24,12 +24,13 @@ export async function uploadFile(file: File): Promise<UploadResponse> {
 
 export async function createJob(
   upload_id: string,
+  file_path: string,
   options: Partial<JobOptions>
 ): Promise<Job> {
   const res = await fetch(`${BASE}/api/v1/jobs`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ upload_id, ...options }),
+    body: JSON.stringify({ upload_id, file_path, options }),
   });
 
   return handleResponse<Job>(res);
